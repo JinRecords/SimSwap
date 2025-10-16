@@ -5,8 +5,8 @@
 # Created Date: Wednesday January 12th 2022
 # Author: Chen Xuanhong
 # Email: chenxuanhongzju@outlook.com
-# Last Modified:  Saturday, 13th May 2023 9:56:35 am
-# Modified By: Chen Xuanhong
+# Last Modified:  Thursday, 16th Oct 2025 10:18:35 pm
+# Modified By: Jing Yang
 # Copyright (c) 2022 Shanghai Jiao Tong University
 #############################################################
 
@@ -45,7 +45,7 @@ class fsModel(BaseModel):
 
         # Id network
         netArc_checkpoint = opt.Arc_path
-        netArc_checkpoint = torch.load(netArc_checkpoint, map_location=torch.device("cpu"))
+        netArc_checkpoint = torch.load(netArc_checkpoint, map_location=torch.device("cpu"), weights_only=False)
         self.netArc = netArc_checkpoint
         self.netArc = self.netArc.cuda()
         self.netArc.eval()
