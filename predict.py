@@ -87,9 +87,12 @@ class Predictor(cog.Predictor):
             b_align_crop_tenor_list = []
 
             for b_align_crop in img_b_align_crop_list:
-                b_align_crop_tenor = _totensor(cv2.cvtColor(b_align_crop, cv2.COLOR_BGR2RGB))[None, ...].cuda()
+                imagenet_std    = torch.Tensor([0.229, 0.224, 0.225]).view(3,1,1).cuda()
+                imagenet_mean   = torch.Tensor([0.485, 0.456, 0.406]).view(3,1,1).cuda()
 
-                swap_result = model(None, b_align_crop_tenor, latend_id, None, True)[0]
+                b_align_crop_tenor.sub_(imagenet_mean).div_(imagenet_std)
+                swap_result = model.netG(b_align_crop_tenor, latend_id)[0]
+                swap_result.mul_(imagenet_std).add_(imagenet_mean)
                 swap_result_list.append(swap_result)
                 b_align_crop_tenor_list.append(b_align_crop_tenor)
 
