@@ -8,6 +8,7 @@ from PIL import Image
 import torch.nn.functional as F
 from torchvision import transforms
 from models.models import create_model
+from models.projected_model import fsModel
 from options.test_options import TestOptions
 from util.reverse2original import reverse2wholeimage
 from util.norm import SpecificNorm
@@ -52,8 +53,9 @@ class Predictor(cog.Predictor):
         if len(opt.gpu_ids) > 0:
             torch.cuda.set_device(opt.gpu_ids[0])
 
-        torch.nn.Module.dump_patches = True
-        model = create_model(opt)
+        torch.nn.Module.dump_patches = True  
+        model = fsModel()  
+        model.initialize(opt)
         model.eval()
 
         crop_size = opt.crop_size
