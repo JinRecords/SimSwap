@@ -80,17 +80,43 @@ if __name__ == '__main__':
         # DEBUG: Print output ranges
         print(f"Model output - min: {full.min().item():.4f}, max: {full.max().item():.4f}")
         print(f"Model output - mean: {full.mean().item():.4f}, std: {full.std().item():.4f}")
-        
-        # DON'T denormalize - just clamp
+        full = img_fake.detach().cpu()
         full = torch.clamp(full, 0, 1)
-        
         print(f"After clamp - min: {full.min().item():.4f}, max: {full.max().item():.4f}")
 
+        # PERMUTE from [C, H, W] to [H, W, C]
+        full = full.squeeze(0).permute(1, 2, 0)
 
-        full = full.permute(1, 2, 0)
-        output = full.to('cpu')
-        output = np.array(output)
+        # Convert to NumPy
+        output = full.numpy()
+
+        # Convert from RGB to BGR for OpenCV
         output = output[..., ::-1]
-        output = output * 255
-        cv2.imwrite(opt.output_path + 'result.jpg', output)
-        print(f"Success! Result saved to: {opt.output_path}result.jpg")
+
+        # Scale to [0,255]
+        output = (output * 255).astype(np.uint8)
+
+        # Save
+
+        # Assume output is [H, W, C] and values are in [0,255], uint8
+        # If NOT, run: output = (output * 255).astype(np.uint8)
+
+        # Convert to HSV color space to control saturation
+        hsv = cv2.cvtColor(output, cv2.COLOR_BGR2HSV)
+
+        # Reduce saturation by a factor (e.g., 0.6 for 60% original)
+        SCALE = 0.8  # Change as desired: 0 = full desaturation (gray), 1 = full original
+        hsv[...,1] = (hsv[...,1].astype(np.float32) * SCALE).clip(0,255).astype(np.uint8)
+
+        # Convert back to BGR
+        output_desat = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+
+        # Save the desaturated image
+        cv2.imwrite(opt.output_path + 'result.jpg', output_desat)
+        print(f"Desaturated image saved to: {opt.output_path}result.jpg")
+
+        from IPython.display import Image, display
+
+    print(f"PATH_A={opt.pic_a_path}")
+    print(f"PATH_B={opt.pic_b_path}")
+    print(f"RESULT={opt.output_path + 'result.jpg'}")
